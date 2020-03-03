@@ -5,6 +5,7 @@ export async function main(event, context) {
     const data = JSON.parse(event.body);
     const params = {
         TableName: process.env.tableName,
+        Region: "sa-east-1",
         // 'Key' defines the partition key and sort key of the item to be updated
         // - 'userId': Identity Pool identity id of the authenticated user
         // - 'noteId': path parameter
@@ -29,6 +30,7 @@ export async function main(event, context) {
         await dynamoDblib.call("update", params);
         return success({status: true});
     } catch (e) {
+        console.log(e);
         return failure({status: false});
     }
 }
