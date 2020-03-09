@@ -1,5 +1,5 @@
 Resources:
-  # The federated identity for our pool to auth with
+  # The federated identity for our user pool to auth with
   CognitoIdentityPool:
     Type: AWS::Cognito::IdentityPool
     Properties:
@@ -12,19 +12,19 @@ Resources:
         - ClientId:
             Ref: CognitoUserPoolClient
           ProviderName:
-            Fn::GetAtt: ["CognitoUserPool", "ProviderName"]
-
+            Fn::GetAtt: [ "CognitoUserPool", "ProviderName" ]
+            
   # IAM roles
-  CognitoIdentityPooRoles:
+  CognitoIdentityPoolRoles:
     Type: AWS::Cognito::IdentityPoolRoleAttachment
     Properties:
-      IdentityPoold:
+      IdentityPoolId:
         Ref: CognitoIdentityPool
       Roles:
         authenticated:
           Fn::GetAtt: [CognitoAuthRole, Arn]
-
-  # IAM role used form authenticated users
+          
+  # IAM role used for authenticated users
   CognitoAuthRole:
     Type: AWS::IAM::Role
     Properties:
@@ -39,9 +39,9 @@ Resources:
               - 'sts:AssumeRoleWithWebIdentity'
             Condition:
               StringEquals:
-                'cognito-identity.amazonaws.com:aud': 
+                'cognito-identity.amazonaws.com:aud':
                   Ref: CognitoIdentityPool
-              'ForAnyValue:StringLike': 
+              'ForAnyValue:StringLike':
                 'cognito-identity.amazonaws.com:amr': authenticated
       Policies:
         - PolicyName: 'CognitoAuthorizedPolicy'
@@ -53,14 +53,14 @@ Resources:
                   - 'mobileanalytics:PutEvents'
                   - 'cognito-sync:*'
                   - 'cognito-identity:*'
-                Resources: '*'
-
+                Resource: '*'
+              
               # Allow users to invoke our API
               - Effect: 'Allow'
                 Action:
                   - 'execute-api:Invoke'
                 Resource:
-                  Fn:::Join:
+                  Fn::Join:
                     - ''
                     -
                       - 'arn:aws:execute-api:'
@@ -70,7 +70,7 @@ Resources:
                       - ':'
                       - Ref: ApiGatewayRestApi
                       - '/*'
-
+              
               # Allow users to upload attachments to their
               # folder inside our S3 bucket
               - Effect: 'Allow'
@@ -83,11 +83,10 @@ Resources:
                       - Fn::GetAtt: [AttachmentsBucket, Arn]
                       - '/private/'
                       - '$'
-                      - '{cognito-identity.amazonaws.com:sub/*'
-
+                      - '{cognito-identity.amazonaws.com:sub}/*'
+  
 # Print out the Id of the Identity Pool that is created
 Outputs:
   IdentityPoolId:
     Value:
       Ref: CognitoIdentityPool
-             
